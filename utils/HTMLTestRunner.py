@@ -656,10 +656,7 @@ class HTMLTestRunner(Template_mixin):
     def __init__(self, stream=sys.stdout, verbosity=1, title=None, description=None):
         self.stream = stream
         self.verbosity = verbosity
-        if title is None:
-            self.title = self.DEFAULT_TITLE
-        else:
-            self.title = title
+        self.title = self.DEFAULT_TITLE if title is None else title
         if description is None:
             self.description = self.DEFAULT_DESCRIPTION
         else:
@@ -687,8 +684,7 @@ class HTMLTestRunner(Template_mixin):
                 rmap[cls] = []
                 classes.append(cls)
             rmap[cls].append((n,t,o,e))
-        r = [(cls, rmap[cls]) for cls in classes]
-        return r
+        return [(cls, rmap[cls]) for cls in classes]
 
     def getReportAttributes(self, result):
         """
@@ -701,10 +697,7 @@ class HTMLTestRunner(Template_mixin):
         if result.success_count: status.append(u'通过 %s' % result.success_count)
         if result.failure_count: status.append(u'失败 %s' % result.failure_count)
         if result.error_count:   status.append(u'错误 %s' % result.error_count  )
-        if status:
-            status = ' '.join(status)
-        else:
-            status = 'none'
+        status = ' '.join(status) if status else 'none'
         return [
             (u'开始时间', startTime),
             (u'运行时长', duration),
@@ -741,12 +734,11 @@ class HTMLTestRunner(Template_mixin):
                 value = saxutils.escape(value),
             )
             a_lines.append(line)
-        heading = self.HEADING_TMPL % dict(
+        return self.HEADING_TMPL % dict(
             title = saxutils.escape(self.title),
             parameters = ''.join(a_lines),
             description = saxutils.escape(self.description),
         )
-        return heading
 
     def _generate_report(self, result):
         rows = []
@@ -781,22 +773,20 @@ class HTMLTestRunner(Template_mixin):
             for tid, (n,t,o,e) in enumerate(cls_results):
                 self._generate_report_test(rows, cid, tid, n, t, o, e)
 
-        report = self.REPORT_TMPL % dict(
+        return self.REPORT_TMPL % dict(
             test_list = ''.join(rows),
             count = str(result.success_count+result.failure_count+result.error_count),
             Pass = str(result.success_count),
             fail = str(result.failure_count),
             error = str(result.error_count),
         )
-        return report
 
     def _generate_chart(self, result):
-        chart = self.ECHARTS_SCRIPT % dict(
+        return self.ECHARTS_SCRIPT % dict(
             Pass=str(result.success_count),
             fail=str(result.failure_count),
             error=str(result.error_count),
         )
-        return chart
 
     def _generate_report_test(self, rows, cid, tid, n, t, o, e):
         # e.g. 'pt1.1', 'ft1.1', etc

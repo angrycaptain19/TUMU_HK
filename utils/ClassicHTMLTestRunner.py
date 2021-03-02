@@ -783,10 +783,7 @@ class HTMLTestRunner(Template_mixin):
                  description=None, tester=None):
         self.stream = stream
         self.verbosity = verbosity
-        if title is None:
-            self.title = self.DEFAULT_TITLE
-        else:
-            self.title = title
+        self.title = self.DEFAULT_TITLE if title is None else title
         if description is None:
             self.description = self.DEFAULT_DESCRIPTION
         else:
@@ -794,10 +791,7 @@ class HTMLTestRunner(Template_mixin):
 
         self.startTime = datetime.datetime.now()
 
-        if tester is None:
-            self.tester = 'tester'
-        else:
-            self.tester = tester
+        self.tester = 'tester' if tester is None else tester
 
 
     def run(self, test):
@@ -818,12 +812,11 @@ class HTMLTestRunner(Template_mixin):
         classes = []
         for n,t,o,e in result_list:
             cls = t.__class__
-            if not cls in rmap:
+            if cls not in rmap:
                 rmap[cls] = []
                 classes.append(cls)
             rmap[cls].append((n,t,o,e))
-        r = [(cls, rmap[cls]) for cls in classes]
-        return r
+        return [(cls, rmap[cls]) for cls in classes]
 
 
     def getReportAttributes(self, result):
@@ -838,10 +831,7 @@ class HTMLTestRunner(Template_mixin):
         if result.success_count: status.append('通过 %s'    % result.success_count)
         if result.failure_count: status.append('失败 %s' % result.failure_count)
         if result.error_count:   status.append('错误 %s'   % result.error_count  )
-        if status:
-            status = ' '.join(status)
-        else:
-            status = 'none'
+        status = ' '.join(status) if status else 'none'
         return [
             ('测试人员', self.tester),
             ('开始时间', startTime),
@@ -880,12 +870,11 @@ class HTMLTestRunner(Template_mixin):
                     value = saxutils.escape(value),
                 )
             a_lines.append(line)
-        heading = self.HEADING_TMPL % dict(
+        return self.HEADING_TMPL % dict(
             title = saxutils.escape(self.title),
             parameters = ''.join(a_lines),
             description = saxutils.escape(self.description),
         )
-        return heading
 
 
     def _generate_report(self, result):
@@ -926,7 +915,8 @@ class HTMLTestRunner(Template_mixin):
             rate =result.success_count*100/v_count
             rate=round(rate,2)
 
-        report = self.REPORT_TMPL % dict(
+        #print(report)
+        return self.REPORT_TMPL % dict(
             test_list = ''.join(rows),
             count = str(result.success_count+result.failure_count+result.error_count),
             Pass = str(result.success_count),
@@ -934,8 +924,6 @@ class HTMLTestRunner(Template_mixin):
             error = str(result.error_count),
             PassRate=str(rate)+'%'
         )
-        #print(report)
-        return report
 
 
     def _generate_report_test(self, rows, cid, tid, n, t, o, e):
